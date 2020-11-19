@@ -3,13 +3,22 @@ import Input from './common/input';
 
 class LoginForm extends Component {
   username = React.createRef();
-
   state = {
-    account: { username: "", password: "" }
+    account: { username: "", password: "" },
+    errors: {} // Using object instead of array
+  }
+
+  validate = () => {
+    return { username: 'Username is required.' }
   }
 
   handleSubmit = e => {
     e.preventDefault();
+
+    const errors = this.validate();
+    this.setState({ errors });
+
+    if (errors) return;
 
     const username = this.username.current.value;
     console.log(username);
