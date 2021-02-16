@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
-import { getMovies } from '../services/fakeMovieService';
-import { getGenres } from '../services/fakeGenreService';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify'
+import { getMovies, deleteMovie } from '../services/movieService';
+import { getGenres } from '../services/genreService';
 import Pagination from '../components/common/pagination';
 import { paginate } from '../utils/paginate';
 import ListGroup from './common/listGroup';
 import MoviesTable from './common/moviesTable';
 import SearchBox from './common/searchBox';
 import _ from 'lodash';
-import { Link } from 'react-router-dom';
 
 class Movies extends Component {
   state = {
@@ -20,13 +21,12 @@ class Movies extends Component {
     sortColumn: { path: 'title', order: 'asc' }
   };
 
-  componentDidMount() {
-    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()]
+  async componentDidMount() {
+    const { data } = await getGenres();
+    const genres = [{ _id: "", name: "All Genres" }, ...data]
 
-    this.setState({
-      movies: getMovies(),
-      genres
-    });
+    const { data: movies } = await getMovies();
+    this.setState({ movies, genres });
   };
 
   handleLike = (movie) => {
@@ -37,11 +37,19 @@ class Movies extends Component {
     this.setState({ movies });
   }
 
-  handleDelete = (movie) => {
-    console.log(movie);
-    const movies = this.state.movies.filter(m => m._id !== movie._id);
-    // this.setState({ movies: movies });
+  handleDelete = async (movie) => {
+    const originalMovies = this.state.movies;
+    const movies = originalMovies.filter(m => m._id !== movie._id);
     this.setState({ movies }); // Best Practices in Modern JS
+    try {
+      await deleteMovie(movie._id);
+    } catch (ex) {
+      if (ex.response && ex.response.status === 404) {
+        toast.error('This movie has already been deleted.');
+      }
+
+      this.setState({ movies: originalMovies })
+    }
   };
 
   handlePageChange = (page) => {

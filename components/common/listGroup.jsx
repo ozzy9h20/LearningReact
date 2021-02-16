@@ -20,7 +20,7 @@ const ListGroup = (props) => {
         >
           {item[textProperty]}
         </li>
-      ))};
+      ))}
     </ul>
   );
 };
